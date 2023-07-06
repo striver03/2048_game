@@ -1,6 +1,9 @@
 import pygame
 import random
 
+import globals
+import turn
+
 pygame.init()
 
 # inital setup
@@ -39,7 +42,7 @@ spawn_new = True
 game_over = False
 init_count = 0
 direction = ''
-score = 0
+globals.initialize()
 file = open('high_score.txt','r')
 init_high = int(file.readline())
 file.close()
@@ -61,145 +64,17 @@ def draw_over():
     screen.blit(game_over_text2, (70, 105))
 
 
-# move the tiles upward
-def take_up_turn(board):
-    global score
-    [n,m] = [len(board),len(board[0])]
-    merged = [[False for _ in range(n)] for _ in range(m)]
-
-    for i in range(1,n):   # For i = 0, upward shifting is not possible
-        for j in range(m):
-
-            if board[i][j] == 0:    # Shifting will add no value
-                continue
-
-            shift = 0
-            for k in range(i-1,-1,-1):
-                if board[k][j] == 0:
-                    shift += 1
-                else:
-                    break
-
-            if shift > 0:
-                board[i-shift][j] = board[i][j]
-                board[i][j] = 0
-
-            if i-shift-1 >= 0 and board[i-shift-1][j] == board[i-shift][j] and not merged[i-shift-1][j] and not merged[i-shift][j]:
-                board[i-shift-1][j] *= 2
-                score += board[i-shift-1][j]
-                board[i-shift][j] = 0
-                merged[i-shift-1][j] = True
-
-    return board
-
-
-# move the tiles downward
-def take_down_turn(board):
-    global score
-    [n,m] = [len(board),len(board[0])]
-    merged = [[False for _ in range(n)] for _ in range(m)]
-
-    for i in range(n-2,-1,-1):   # For i = n-1, downward shifting is not possible
-        for j in range(m):
-
-            if board[i][j] == 0:    # Shifting will add no value
-                continue
-
-            shift = 0
-            for k in range(i+1,n):
-                if board[k][j] == 0:
-                    shift += 1
-                else:
-                    break
-
-            if shift > 0:
-                board[i+shift][j] = board[i][j]
-                board[i][j] = 0
-
-            if i+shift+1 < n and board[i+shift+1][j] == board[i+shift][j] and not merged[i+shift+1][j] and not merged[i+shift][j]:
-                board[i+shift+1][j] *= 2
-                score += board[i+shift+1][j]
-                board[i+shift][j] = 0
-                merged[i+shift+1][j] = True
-
-    return board
-
-
-# move tiles rightward
-def take_right_turn(board):
-    global score
-    [n,m] = [len(board),len(board[0])]
-    merged = [[False for _ in range(n)] for _ in range(m)]
-
-    for i in range(n):
-        for j in range(m-2,-1,-1):   # For j = m-1, rightward shifting is not possible
-
-            if board[i][j] == 0:    # Shifting will add no value
-                continue
-
-            shift = 0
-            for k in range(j+1,m):
-                if board[i][k] == 0:
-                    shift += 1
-                else:
-                    break
-
-            if shift > 0:
-                board[i][j+shift] = board[i][j]
-                board[i][j] = 0
-            
-            if j+shift+1 < m and board[i][j+shift+1] == board[i][j+shift] and not merged[i][j+shift+1] and not merged[i][j+shift]:
-                board[i][j+shift+1] *= 2
-                score += board[i][j+shift+1]
-                board[i][j+shift] = 0
-                merged[i][j+shift+1] = True
-
-    return board
-
-
-# move tiles leftward
-def take_left_turn(board):
-    global score
-    [n,m] = [len(board),len(board[0])]
-    merged = [[False for _ in range(n)] for _ in range(m)]
-
-    for i in range(n):
-        for j in range(1,m):    # For j = 0, leftward shifting is not possible
-
-            if board[i][j] == 0:    # Shifting will add no value
-                continue
-
-            shift = 0
-            for k in range(j-1,-1,-1):
-                if board[i][k] == 0:
-                    shift += 1
-                else:
-                    break
-
-            if shift > 0:
-                board[i][j-shift] = board[i][j]
-                board[i][j] = 0
-
-            if j-shift-1 >= 0 and board[i][j-shift-1] == board[i][j-shift] and not merged[i][j-shift-1] and not merged[i][j-shift]:
-                board[i][j-shift-1] *= 2
-                score += board[i][j-shift-1]
-                board[i][j-shift] = 0
-                merged[i][j-shift-1] = True
-
-    return board
-
-
 # move tiles based on direction
 def take_turn(board,direction):
     match direction:
         case 'UP':
-            return take_up_turn(board = board)
+            return turn.take_up_turn(board = board)
         case 'DOWN':
-            return take_down_turn(board = board)
+            return turn.take_down_turn(board = board)
         case 'RIGHT':
-            return take_right_turn(board = board)
+            return turn.take_right_turn(board = board)
         case 'LEFT':
-            return take_left_turn(board = board)
+            return turn.take_left_turn(board = board)
         case default:
             return board
 
@@ -235,7 +110,7 @@ def draw_board():
         border_bottom_left_radius = 10,
         border_bottom_right_radius = 10,
     )
-    score_text = font.render(f'Score: {score}', True, 'black')
+    score_text = font.render(f'Score: {globals.score}', True, 'black')
     high_score_text = font.render(f'High Score: {high_score}', True, 'black')
     screen.blit(score_text, (10,410))
     screen.blit(high_score_text, (10,450))
@@ -280,6 +155,18 @@ def draw_pieces(board):
                 )
 
 
+def check_possible_move(board):
+    [n,m] = [len(board),len(board[0])]
+
+    for i in range(n-1):
+        for j in range(m-1):
+            if board[i][j] == board[i+1][j]:
+                return False
+            if board[i][j] == board[i][j+1]:
+                return False
+    return True
+
+
 # main game loop
 run = True
 while run:
@@ -289,9 +176,12 @@ while run:
     draw_pieces(board = board_values)
     
     if spawn_new or init_count < 2:    # Initially the board is filled with 2 tiles at random locations
-        board_values, game_over = new_pieces(board = board_values)
+        board_values, is_full = new_pieces(board = board_values)
         spawn_new = False
         init_count += 1
+
+        if is_full:
+            game_over = check_possible_move(board = board_values)
 
     if direction != '':
         take_turn(board = board_values, direction = direction)
@@ -325,12 +215,12 @@ while run:
                     board_values = [[0 for _ in range(4)] for _ in range(4)]
                     spawn_new = True
                     init_count = 0
-                    score = 0
+                    globals.score = 0
                     direction = ''
                     game_over = False
 
-    if score > high_score:
-        high_score = score
+    if globals.score > high_score:
+        high_score = globals.score
 
     pygame.display.flip()
 pygame.quit()
