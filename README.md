@@ -1,3 +1,1 @@
-# 2048_game
-Created a classic 4x4 2048 game with the functionalities to track the
-player’s high score, restart the game and the ability to retrace the moves.
+![2048](https://github.com/striver03/2048_game/assets/77234671/6ce6c33c-577b-4895-bd45-371b4d48ff06)
