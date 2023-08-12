@@ -21,19 +21,13 @@ def take_up_turn(board):
             if shift > 0:
                 board[i-shift][j] = board[i][j]
                 board[i][j] = 0
-                globals.listWithZeroes.remove([i-shift,j])
-                globals.listWithZeroes.append([i,j])
 
             if i-shift-1 >= 0 and board[i-shift-1][j] == board[i-shift][j] and not merged[i-shift-1][j] and not merged[i-shift][j]:
                 board[i-shift-1][j] *= 2
                 globals.score += board[i-shift-1][j]
                 board[i-shift][j] = 0
                 merged[i-shift-1][j] = True
-                globals.listWithZeroes.append([i-shift,j])
 
-    globals.moves_stack.append(board)
-    if len(globals.moves_stack) > 5:
-        globals.moves_stack.popleft()
     return board
 
 
@@ -58,19 +52,13 @@ def take_down_turn(board):
             if shift > 0:
                 board[i+shift][j] = board[i][j]
                 board[i][j] = 0
-                globals.listWithZeroes.remove([i+shift,j])
-                globals.listWithZeroes.append([i,j])
 
             if i+shift+1 < n and board[i+shift+1][j] == board[i+shift][j] and not merged[i+shift+1][j] and not merged[i+shift][j]:
                 board[i+shift+1][j] *= 2
                 globals.score += board[i+shift+1][j]
                 board[i+shift][j] = 0
                 merged[i+shift+1][j] = True
-                globals.listWithZeroes.append([i+shift,j])
 
-    globals.moves_stack.append(board)
-    if len(globals.moves_stack) > 5:
-        globals.moves_stack.popleft()
     return board
 
 
@@ -95,24 +83,18 @@ def take_right_turn(board):
             if shift > 0:
                 board[i][j+shift] = board[i][j]
                 board[i][j] = 0
-                globals.listWithZeroes.remove([i,j+shift])
-                globals.listWithZeroes.append([i,j])
             
             if j+shift+1 < m and board[i][j+shift+1] == board[i][j+shift] and not merged[i][j+shift+1] and not merged[i][j+shift]:
                 board[i][j+shift+1] *= 2
                 globals.score += board[i][j+shift+1]
                 board[i][j+shift] = 0
                 merged[i][j+shift+1] = True
-                globals.listWithZeroes.append([i,j+shift])
 
-    globals.moves_stack.append(board)
-    if len(globals.moves_stack) > 5:
-        globals.moves_stack.popleft()
     return board
 
 
 # move tiles leftward
-def take_left_turn(board):
+def take_left_turn(board,):
     [n,m] = [len(board),len(board[0])]
     merged = [[False for _ in range(n)] for _ in range(m)]
 
@@ -132,17 +114,11 @@ def take_left_turn(board):
             if shift > 0:
                 board[i][j-shift] = board[i][j]
                 board[i][j] = 0
-                globals.listWithZeroes.remove([i,j-shift])
-                globals.listWithZeroes.append([i,j])
 
             if j-shift-1 >= 0 and board[i][j-shift-1] == board[i][j-shift] and not merged[i][j-shift-1] and not merged[i][j-shift]:
                 board[i][j-shift-1] *= 2
                 globals.score += board[i][j-shift-1]
                 board[i][j-shift] = 0
                 merged[i][j-shift-1] = True
-                globals.listWithZeroes.append([i,j-shift])
 
-    globals.moves_stack.append(board)
-    if len(globals.moves_stack) > 5:
-        globals.moves_stack.popleft()
     return board

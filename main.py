@@ -42,7 +42,6 @@ spawn_new = True
 game_over = False
 init_count = 0
 direction = ''
-perform_retrace = False
 globals.initialize()
 file = open('high_score.txt','r')
 init_high = int(file.readline())
@@ -66,7 +65,7 @@ def draw_over():
 
 
 # move tiles based on direction
-def take_turn(board, direction):
+def take_turn(board,direction):
     match direction:
         case 'UP':
             return turn.take_up_turn(board = board)
@@ -82,12 +81,17 @@ def take_turn(board, direction):
 
 # spawn new piece randomly
 def new_pieces(board):
-    if len(globals.listWithZeroes) == 0:
+    listWithZeroes = []
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            if (board[i][j] == 0):
+                listWithZeroes.append([i,j])
+
+    if len(listWithZeroes) == 0:
         return board, True
 
-    randomIdx = random.randint(a = 0, b = len(globals.listWithZeroes)-1)    # Selecting random index from the list of tiles with no value
-    [row,col] = globals.listWithZeroes[randomIdx]
-    globals.listWithZeroes.remove([row,col])
+    randomIdx = random.randint(a = 0, b = len(listWithZeroes)-1)    # Selecting random index from the list of tiles with no value
+    [row,col] = listWithZeroes[randomIdx]
 
     if random.randint(1,10) == 10:  # The probabilty of spawning 4 is ~ 1/10
         board[row][col] = 4
@@ -132,7 +136,7 @@ def draw_pieces(board):
             pygame.draw.rect(
                 surface = screen,
                 color = color,
-                rect = [j * 95 + 20, i * 95 + 20, 75, 75],
+                rect = [j*95 + 20, i*95 + 20, 75, 75],
                 border_radius = 10,
             )
 
@@ -151,27 +155,16 @@ def draw_pieces(board):
                 )
 
 
-# check if there exists a possible move despite the board got filled completely
 def check_possible_move(board):
     [n,m] = [len(board),len(board[0])]
 
     for i in range(n-1):
         for j in range(m-1):
             if board[i][j] == board[i+1][j]:
-                return True
+                return False
             if board[i][j] == board[i][j+1]:
-                return True
-    return False
-
-
-# function to retrace the move
-def retrace(board):
-    if len(globals.moves_stack) <= 1:
-        return board
-    globals.moves_stack.pop()
-
-    board = globals.moves_stack[-1]
-    return board
+                return False
+    return True
 
 
 # main game loop
@@ -181,19 +174,16 @@ while run:
     screen.fill(color='gray')
     draw_board()
     draw_pieces(board = board_values)
-
+    
     if spawn_new or init_count < 2:    # Initially the board is filled with 2 tiles at random locations
         board_values, is_full = new_pieces(board = board_values)
         spawn_new = False
         init_count += 1
 
         if is_full:
-            game_over = not check_possible_move(board = board_values)
+            game_over = check_possible_move(board = board_values)
 
-    if perform_retrace == True:
-        retrace(board = board_values)
-        perform_retrace = False
-    elif direction != '':
+    if direction != '':
         take_turn(board = board_values, direction = direction)
         direction = ''
         spawn_new = True
@@ -219,15 +209,13 @@ while run:
                 direction = 'LEFT'
             elif event.key == pygame.K_RIGHT:
                 direction = 'RIGHT'
-            elif event.key == pygame.K_BACKSPACE:
-                perform_retrace = True
 
             if game_over:
                 if event.key == pygame.K_RETURN:
-                    globals.initialize()
                     board_values = [[0 for _ in range(4)] for _ in range(4)]
                     spawn_new = True
                     init_count = 0
+                    globals.score = 0
                     direction = ''
                     game_over = False
 
